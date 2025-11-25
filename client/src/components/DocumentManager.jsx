@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaFile, FaUpload, FaDownload, FaTrash } from 'react-icons/fa';
+import api from '../api/axios'; // FIXED: Added missing import
 
 export default function DocumentManager({ tripId, documents = [], onUpdate }) {
   const [uploading, setUploading] = useState(false);
@@ -25,6 +26,7 @@ export default function DocumentManager({ tripId, documents = [], onUpdate }) {
         };
         onUpdate([...documents, newDoc]);
       } catch (err) {
+        console.error('Upload error:', err);
         alert('Upload failed');
       } finally {
         setUploading(false);

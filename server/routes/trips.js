@@ -1,51 +1,25 @@
-// server/models/Trip.js - COMPLETE CORRECTED FILE
-const mongoose = require('mongoose');
+// server/routes/trips.js - CORRECT ROUTES FILE
+const express = require('express');
+const router = express.Router();
+const {
+  getTrips,
+  createTrip,
+  getTrip,
+  updateTrip,
+  deleteTrip,
+} = require('../controllers/tripController');
+const protect = require('../middleware/authMiddleware');
 
-const itineraryItemSchema = new mongoose.Schema({
-  date: String,
-  activity: String
-}, { _id: false });
+// All routes require authentication
+router.use(protect);
 
-const expenseSchema = new mongoose.Schema({
-  category: String,
-  name: String,
-  amount: { type: Number, default: 0 },
-  description: String,
-  date: String
-}, { _id: false });
+router.route('/')
+  .get(getTrips)
+  .post(createTrip);
 
-const checklistItemSchema = new mongoose.Schema({
-  category: { type: String, enum: ['Packing', 'Documents', 'Tasks'], default: 'Packing' },
-  text: String,
-  done: { type: Boolean, default: false }
-}, { _id: false });
+router.route('/:id')
+  .get(getTrip)
+  .put(updateTrip)
+  .delete(deleteTrip);
 
-const tripSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  title: { type: String, required: true },
-  destination: { type: String, required: true },
-  description: { type: String, default: '' },
-  imageUrl: { type: String, default: '' },
-
-  // scheduling & overview
-  startDate: { type: String },
-  endDate: { type: String },
-  travelers: { type: Number, default: 1 },
-  budget: { type: Number, default: 0 },
-
-  // core arrays
-  collaborators: [{ type: String }],
-  itinerary: [itineraryItemSchema],
-  expenses: [expenseSchema],
-  checklist: [checklistItemSchema],
-
-  // brochure-like extended fields
-  about: { type: String, default: '' },
-  highlights: [{ type: String }],
-  inclusions: [{ type: String }],
-  exclusions: [{ type: String }],
-  plan: { type: String },
-  thingsToCarry: [{ type: String }]
-}, { timestamps: true });
-
-module.exports = mongoose.model('Trip', tripSchema);
+module.exports = router;
