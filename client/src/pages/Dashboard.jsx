@@ -1,12 +1,20 @@
-// client/src/pages/Dashboard.jsx
+// client/src/pages/Dashboard.jsx - FIXED IMAGE URL BUG & ENHANCED UI
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import { FaSuitcase, FaCalendarAlt, FaRunning, FaDollarSign } from "react-icons/fa";
+import { 
+  FaSuitcase, 
+  FaCalendarAlt, 
+  FaRunning, 
+  FaDollarSign,
+  FaPlus,
+  FaMapMarkerAlt,
+  FaClock
+} from "react-icons/fa";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +34,6 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
   };
 
   const handleCreateSuccess = (newTrip) => {
@@ -64,123 +67,113 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* header */}
-      <header className="bg-white shadow sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Travel Planner</h1>
-            <div className="text-sm text-gray-500">
-              Hello, {user?.name || "Traveler"}
+      {/* Header Section */}
+      <section className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome back, {user?.name || "Traveler"}! 👋
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {totalTrips === 0 
+                  ? "Ready to plan your first adventure?" 
+                  : `You have ${upcomingTrips} upcoming trip${upcomingTrips !== 1 ? 's' : ''}`
+                }
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/new-trip")}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700"
+              className="btn btn-primary flex items-center gap-2"
             >
-              New Trip
-            </button>
-            <button
-              onClick={() => setCreateOpen(true)}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600"
-            >
-              + Create Trip
-            </button>
-            {/* ✅ Only one logout button */}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-            >
-              Logout
+              <FaPlus />
+              Create New Trip
             </button>
           </div>
         </div>
-      </header>
-
-      {/* summary cards */}
-      <section className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <SummaryCard
-          title="Total Trips"
-          value={totalTrips}
-          icon={<FaSuitcase size={24} />}
-          gradient="from-blue-500 to-blue-700"
-        />
-        <SummaryCard
-          title="Upcoming"
-          value={upcomingTrips}
-          icon={<FaCalendarAlt size={24} />}
-          gradient="from-green-500 to-green-700"
-        />
-        <SummaryCard
-          title="Active"
-          value={activeTrips}
-          icon={<FaRunning size={24} />}
-          gradient="from-yellow-500 to-yellow-600"
-        />
-        <SummaryCard
-          title="Total Budget Used"
-          value={`$${totalBudgetUsed}`}
-          icon={<FaDollarSign size={24} />}
-          gradient="from-purple-500 to-purple-700"
-        />
       </section>
 
-      {/* main */}
-      <main className="max-w-7xl mx-auto px-6 pb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">Your Trips</h2>
+      {/* Summary Cards */}
+      <section className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SummaryCard
+            title="Total Trips"
+            value={totalTrips}
+            icon={<FaSuitcase size={24} />}
+            gradient="from-blue-500 to-blue-700"
+            bgColor="bg-blue-50"
+            iconColor="text-blue-600"
+          />
+          <SummaryCard
+            title="Upcoming"
+            value={upcomingTrips}
+            icon={<FaCalendarAlt size={24} />}
+            gradient="from-green-500 to-green-700"
+            bgColor="bg-green-50"
+            iconColor="text-green-600"
+          />
+          <SummaryCard
+            title="Active"
+            value={activeTrips}
+            icon={<FaRunning size={24} />}
+            gradient="from-yellow-500 to-yellow-600"
+            bgColor="bg-yellow-50"
+            iconColor="text-yellow-600"
+          />
+          <SummaryCard
+            title="Total Spent"
+            value={`$${totalBudgetUsed.toFixed(0)}`}
+            icon={<FaDollarSign size={24} />}
+            gradient="from-purple-500 to-purple-700"
+            bgColor="bg-purple-50"
+            iconColor="text-purple-600"
+          />
+        </div>
+      </section>
+
+      {/* Trips Grid */}
+      <main className="max-w-7xl mx-auto px-6 pb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Your Trips</h2>
+          {trips.length > 0 && (
+            <div className="text-sm text-gray-500">
+              {trips.length} {trips.length === 1 ? 'trip' : 'trips'}
+            </div>
+          )}
+        </div>
 
         {loading ? (
-          <div className="text-center py-20 text-gray-500">Loading trips...</div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card animate-pulse">
+                <div className="skeleton h-48 w-full mb-4"></div>
+                <div className="skeleton h-6 w-3/4 mb-2"></div>
+                <div className="skeleton h-4 w-1/2"></div>
+              </div>
+            ))}
+          </div>
         ) : trips.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 mb-4">No trips yet — create one!</p>
+            <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaSuitcase size={48} className="text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No trips yet
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Start planning your next adventure today!
+            </p>
             <button
-              onClick={() => setCreateOpen(true)}
-              className="px-5 py-2 bg-indigo-600 text-white rounded"
+              onClick={() => navigate("/new-trip")}
+              className="btn btn-primary"
             >
-              Create Trip
+              Create Your First Trip
             </button>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {trips.map((t) => (
-              <article
-                key={t._id}
-                className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition"
-                onClick={() => navigate(`/trip/${t._id}`)}
-              >
-                <div className="h-48 w-full overflow-hidden bg-gray-100">
-                  <img
-                    src={
-                      t.imageUrl ||
-                      t.image ||
-                      `https://source.unsplash.com/800x600/?${encodeURIComponent(
-                        t.destination || "travel"
-                      )}`
-                    }
-                    alt={t.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {t.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{t.destination}</p>
-                  <p className="mt-3 text-sm text-gray-600 line-clamp-3">
-                    {t.description || "No description provided."}
-                  </p>
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="text-xs text-gray-500">
-                      {new Date(t.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-indigo-600 font-medium">
-                      View details →
-                    </div>
-                  </div>
-                </div>
-              </article>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {trips.map((trip) => (
+              <TripCard key={trip._id} trip={trip} onClick={() => navigate(`/trip/${trip._id}`)} />
             ))}
           </div>
         )}
@@ -197,20 +190,105 @@ export default function Dashboard() {
   );
 }
 
-/* SummaryCard with gradient + icon */
-function SummaryCard({ title, value, icon, gradient }) {
+/* Summary Card Component */
+function SummaryCard({ title, value, icon, gradient, bgColor, iconColor }) {
   return (
-    <div className={`bg-gradient-to-r ${gradient} rounded-lg shadow p-4 text-white flex items-center gap-4`}>
-      <div className="bg-white/20 p-3 rounded-full">{icon}</div>
-      <div>
-        <div className="text-sm opacity-90">{title}</div>
-        <div className="text-2xl font-bold">{value}</div>
+    <div className="card hover-lift">
+      <div className="flex items-center gap-4">
+        <div className={`w-14 h-14 ${bgColor} rounded-xl flex items-center justify-center ${iconColor}`}>
+          {icon}
+        </div>
+        <div>
+          <div className="text-sm text-gray-600">{title}</div>
+          <div className="text-2xl font-bold text-gray-900">{value}</div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* CreateTripModal — same as before */
+/* Trip Card Component - FIXED IMAGE URL BUG */
+function TripCard({ trip, onClick }) {
+  // FIX: Standardized image URL handling
+  const imageUrl = trip.imageUrl || 
+    `https://source.unsplash.com/800x600/?${encodeURIComponent(trip.destination || 'travel')}`;
+  
+  const now = new Date();
+  let status = 'upcoming';
+  let statusColor = 'badge-primary';
+  
+  if (trip.startDate && trip.endDate) {
+    const start = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+    
+    if (start <= now && end >= now) {
+      status = 'active';
+      statusColor = 'badge-success';
+    } else if (end < now) {
+      status = 'completed';
+      statusColor = 'badge-secondary';
+    }
+  }
+
+  return (
+    <article 
+      className="card cursor-pointer hover-lift group"
+      onClick={onClick}
+    >
+      <div className="card-image mb-4">
+        <img
+          src={imageUrl}
+          alt={trip.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = `https://source.unsplash.com/800x600/?travel`;
+          }}
+        />
+        <div className="absolute top-3 right-3">
+          <span className={`badge ${statusColor}`}>
+            {status}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition">
+          {trip.title}
+        </h3>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+          <FaMapMarkerAlt size={14} />
+          <span>{trip.destination}</span>
+        </div>
+
+        {trip.description && (
+          <p className="text-sm text-gray-600 mb-3 truncate-2">
+            {trip.description}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <FaClock size={12} />
+            <span>
+              {trip.startDate 
+                ? new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                : 'Not set'
+              }
+            </span>
+          </div>
+          {trip.budget > 0 && (
+            <div className="text-xs font-medium text-gray-700">
+              ${trip.budget}
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* Create Trip Modal */
 function CreateTripModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
     title: "",
@@ -220,133 +298,156 @@ function CreateTripModal({ onClose, onSuccess }) {
     startDate: "",
     endDate: "",
     budget: "",
+    travelers: 1
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const handleChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.title.trim() || !form.destination.trim()) {
+      setError("Title and destination are required");
+      return;
+    }
+    
     setLoading(true);
+    setError("");
+    
     try {
       const res = await api.post("/trips", {
         ...form,
         budget: form.budget ? Number(form.budget) : 0,
+        travelers: form.travelers ? Number(form.travelers) : 1
       });
       onSuccess(res.data);
     } catch (err) {
       console.error("create trip", err);
-      alert(err.response?.data?.message || "Failed to create trip");
+      setError(err.response?.data?.message || "Failed to create trip");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl">
-        <div className="p-6 border-b flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Create New Trip</h3>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h3 className="text-xl font-bold">Create New Trip</h3>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
           >
-            ✕
+            ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">Title</label>
+        <form onSubmit={handleSubmit} className="p-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="input-group">
+              <label className="input-label">Trip Title *</label>
               <input
                 name="title"
                 value={form.title}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full border rounded px-3 py-2"
-                placeholder="e.g. Goa Vacation"
+                className="input"
+                placeholder="e.g. Summer in Bali"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Destination
-              </label>
+            
+            <div className="input-group">
+              <label className="input-label">Destination *</label>
               <input
                 name="destination"
                 value={form.destination}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full border rounded px-3 py-2"
-                placeholder="e.g. Goa, India"
+                className="input"
+                placeholder="e.g. Bali, Indonesia"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Start Date
-              </label>
+            <div className="input-group">
+              <label className="input-label">Start Date</label>
               <input
                 name="startDate"
                 value={form.startDate}
                 onChange={handleChange}
                 type="date"
-                className="mt-1 w-full border rounded px-3 py-2"
+                className="input"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                End Date
-              </label>
+            
+            <div className="input-group">
+              <label className="input-label">End Date</label>
               <input
                 name="endDate"
                 value={form.endDate}
                 onChange={handleChange}
                 type="date"
-                className="mt-1 w-full border rounded px-3 py-2"
+                className="input"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Budget (USD)
-              </label>
+            <div className="input-group">
+              <label className="input-label">Budget (USD)</label>
               <input
                 name="budget"
                 value={form.budget}
                 onChange={handleChange}
                 type="number"
                 min="0"
-                className="mt-1 w-full border rounded px-3 py-2"
-                placeholder="e.g. 1000"
+                className="input"
+                placeholder="e.g. 2000"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Image URL
-              </label>
+            
+            <div className="input-group">
+              <label className="input-label">Number of Travelers</label>
               <input
-                name="imageUrl"
-                value={form.imageUrl}
+                name="travelers"
+                value={form.travelers}
                 onChange={handleChange}
-                type="url"
-                className="mt-1 w-full border rounded px-3 py-2"
-                placeholder="https://..."
+                type="number"
+                min="1"
+                className="input"
               />
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Description
-            </label>
+          <div className="input-group mb-4">
+            <label className="input-label">Cover Image URL</label>
+            <input
+              name="imageUrl"
+              value={form.imageUrl}
+              onChange={handleChange}
+              type="url"
+              className="input"
+              placeholder="https://example.com/image.jpg"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Optional: Provide a direct image URL
+            </p>
+          </div>
+
+          <div className="input-group mb-6">
+            <label className="input-label">Description</label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
               rows="3"
-              className="mt-1 w-full border rounded px-3 py-2"
-              placeholder="Short description..."
+              className="textarea"
+              placeholder="What makes this trip special?"
             ></textarea>
           </div>
 
@@ -354,14 +455,15 @@ function CreateTripModal({ onClose, onSuccess }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded border"
+              className="btn btn-secondary"
+              disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-indigo-600 text-white rounded"
+              className="btn btn-primary"
             >
               {loading ? "Creating..." : "Create Trip"}
             </button>
