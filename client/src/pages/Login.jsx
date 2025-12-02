@@ -1,4 +1,4 @@
-// client/src/pages/Login.jsx - FIXED & REDESIGNED
+// client/src/pages/Login.jsx - FIXED (NO GOOGLE BUTTON)
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";

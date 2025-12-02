@@ -1,4 +1,4 @@
-// client/src/App.jsx - FIXED WITH PROFILE ROUTE
+// client/src/App.jsx - FIXED
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
@@ -19,11 +19,46 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
-        <Route path="/trip/:id" element={<ProtectedRoute><TripDetails /></ProtectedRoute>} />
-        <Route path="/trip/:id/edit" element={<ProtectedRoute><EditTrip /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/new-trip" 
+          element={
+            <ProtectedRoute>
+              <NewTrip />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/trip/:id" 
+          element={
+            <ProtectedRoute>
+              <TripDetails />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/trip/:id/edit" 
+          element={
+            <ProtectedRoute>
+              <EditTrip />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </Router>
   );
