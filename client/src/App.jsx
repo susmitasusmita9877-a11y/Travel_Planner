@@ -1,4 +1,4 @@
-// client/src/App.jsx - FIXED
+// client/src/App.jsx - COMPLETE VERSION WITH ALL NEW ROUTES
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
@@ -8,6 +8,9 @@ import Register from "./pages/Register";
 import TripDetails from "./pages/TripDetails";
 import EditTrip from "./pages/EditTrip";
 import Profile from "./pages/Profile";
+import Discover from "./pages/Discover";
+import Analytics from "./pages/Analytics";
+import UserPreferences from "./pages/UserPreferences";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -19,6 +22,7 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
         <Route 
           path="/dashboard" 
           element={
@@ -27,6 +31,7 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/new-trip" 
           element={
@@ -35,6 +40,7 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/trip/:id" 
           element={
@@ -43,6 +49,7 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/trip/:id/edit" 
           element={
@@ -51,11 +58,40 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/profile" 
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* NEW ROUTES */}
+        <Route 
+          path="/discover" 
+          element={
+            <ProtectedRoute>
+              <Discover />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/analytics" 
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/preferences" 
+          element={
+            <ProtectedRoute>
+              <UserPreferences />
             </ProtectedRoute>
           } 
         />

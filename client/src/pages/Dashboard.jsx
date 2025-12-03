@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.jsx - FIXED IMAGE URL BUG & ENHANCED UI
+// client/src/pages/Dashboard.jsx - WITH SEARCH & FILTER
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -10,7 +10,9 @@ import {
   FaDollarSign,
   FaPlus,
   FaMapMarkerAlt,
-  FaClock
+  FaClock,
+  FaSearch,
+  FaFilter
 } from "react-icons/fa";
 
 export default function Dashboard() {
@@ -19,6 +21,11 @@ export default function Dashboard() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // NEW: Search and Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
     fetchTrips();
@@ -40,6 +47,53 @@ export default function Dashboard() {
     setCreateOpen(false);
     setTrips((prev) => [newTrip, ...prev]);
   };
+
+  // NEW: Trip Status Helper
+  const getTripStatus = (trip) => {
+    if (!trip.startDate || !trip.endDate) return 'planning';
+    const now = new Date();
+    const start = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+    
+    if (start <= now && end >= now) return 'active';
+    if (end < now) return 'completed';
+    return 'upcoming';
+  };
+
+  // NEW: Filter and Sort Logic
+  const filteredTrips = trips
+    .filter(trip => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          trip.title.toLowerCase().includes(query) ||
+          trip.destination.toLowerCase().includes(query) ||
+          trip.description?.toLowerCase().includes(query)
+        );
+      }
+      return true;
+    })
+    .filter(trip => {
+      // Status filter
+      if (statusFilter !== 'all') {
+        return getTripStatus(trip) === statusFilter;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Sorting
+      if (sortBy === 'date') {
+        return new Date(b.startDate || 0) - new Date(a.startDate || 0);
+      }
+      if (sortBy === 'budget') {
+        return (b.budget || 0) - (a.budget || 0);
+      }
+      if (sortBy === 'title') {
+        return a.title.localeCompare(b.title);
+      }
+      return 0;
+    });
 
   /* ---- Summary calculations ---- */
   const now = new Date();
@@ -133,11 +187,84 @@ export default function Dashboard() {
 
       {/* Trips Grid */}
       <main className="max-w-7xl mx-auto px-6 pb-12">
+        {/* NEW: Search and Filters */}
+        {trips.length > 0 && (
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search trips by title, destination, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Filter Dropdowns */}
+              <div className="flex gap-3">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                >
+                  <option value="all">All Status</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="planning">Planning</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="title">Sort by Title</option>
+                  <option value="budget">Sort by Budget</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Active Filters Display */}
+            {(searchQuery || statusFilter !== 'all') && (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm text-gray-600">Active filters:</span>
+                {searchQuery && (
+                  <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm flex items-center gap-2">
+                    Search: "{searchQuery}"
+                    <button onClick={() => setSearchQuery('')} className="hover:text-primary-900">×</button>
+                  </span>
+                )}
+                {statusFilter !== 'all' && (
+                  <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm flex items-center gap-2 capitalize">
+                    Status: {statusFilter}
+                    <button onClick={() => setStatusFilter('all')} className="hover:text-primary-900">×</button>
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setSortBy('date');
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-900 underline"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Your Trips</h2>
-          {trips.length > 0 && (
+          {filteredTrips.length > 0 && trips.length > 0 && (
             <div className="text-sm text-gray-500">
-              {trips.length} {trips.length === 1 ? 'trip' : 'trips'}
+              Showing {filteredTrips.length} of {trips.length} {trips.length === 1 ? 'trip' : 'trips'}
             </div>
           )}
         </div>
@@ -152,27 +279,46 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        ) : trips.length === 0 ? (
+        ) : filteredTrips.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FaSuitcase size={48} className="text-gray-400" />
+              {searchQuery || statusFilter !== 'all' ? (
+                <FaFilter size={48} className="text-gray-400" />
+              ) : (
+                <FaSuitcase size={48} className="text-gray-400" />
+              )}
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No trips yet
+              {searchQuery || statusFilter !== 'all' ? 'No trips found' : 'No trips yet'}
             </h3>
             <p className="text-gray-600 mb-6">
-              Start planning your next adventure today!
+              {searchQuery || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filters'
+                : 'Start planning your next adventure today!'
+              }
             </p>
-            <button
-              onClick={() => navigate("/new-trip")}
-              className="btn btn-primary"
-            >
-              Create Your First Trip
-            </button>
+            {searchQuery || statusFilter !== 'all' ? (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                }}
+                className="btn btn-outline"
+              >
+                Clear Filters
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/new-trip")}
+                className="btn btn-primary"
+              >
+                Create Your First Trip
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {trips.map((trip) => (
+            {filteredTrips.map((trip) => (
               <TripCard key={trip._id} trip={trip} onClick={() => navigate(`/trip/${trip._id}`)} />
             ))}
           </div>
@@ -207,9 +353,8 @@ function SummaryCard({ title, value, icon, gradient, bgColor, iconColor }) {
   );
 }
 
-/* Trip Card Component - FIXED IMAGE URL BUG */
+/* Trip Card Component */
 function TripCard({ trip, onClick }) {
-  // FIX: Standardized image URL handling
   const imageUrl = trip.imageUrl || 
     `https://source.unsplash.com/800x600/?${encodeURIComponent(trip.destination || 'travel')}`;
   
@@ -226,8 +371,11 @@ function TripCard({ trip, onClick }) {
       statusColor = 'badge-success';
     } else if (end < now) {
       status = 'completed';
-      statusColor = 'badge-secondary';
+      statusColor = 'bg-gray-100 text-gray-700';
     }
+  } else {
+    status = 'planning';
+    statusColor = 'bg-yellow-100 text-yellow-700';
   }
 
   return (
@@ -245,7 +393,7 @@ function TripCard({ trip, onClick }) {
           }}
         />
         <div className="absolute top-3 right-3">
-          <span className={`badge ${statusColor}`}>
+          <span className={`badge ${statusColor} capitalize`}>
             {status}
           </span>
         </div>

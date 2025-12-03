@@ -1,8 +1,23 @@
-// client/src/pages/TripDetails.jsx
+// client/src/pages/TripDetails.jsx - UPDATED WITH NEW FEATURES
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { 
+  FaHotel, 
+  FaShoppingBag, 
+  FaCloudSun,
+  FaListUl,
+  FaDollarSign,
+  FaCalendarAlt,
+  FaEdit,
+  FaTrash
+} from "react-icons/fa";
+
+// Import new components
+import HotelBooking from "../components/HotelBooking";
+import NearbyPlaces from "../components/NearbyPlaces";
+import EnhancedWeather from "../components/EnhancedWeather";
 
 const CHECK_CATEGORIES = ["Packing", "Documents", "Tasks"];
 
@@ -76,7 +91,7 @@ export default function TripDetails() {
     setEditOpen(false);
   }
 
-  // Checklist actions (we store checklist as array of {category,text,done})
+  // Checklist actions
   function addChecklist() {
     const text = newCheckText.trim();
     if (!text) return;
@@ -136,117 +151,184 @@ export default function TripDetails() {
   const percentUsed = budget ? Math.round((totalExpenses / budget) * 100) : 0;
   const percentSafe = Math.max(0, Math.min(100, percentUsed));
 
-  // checklist grouped
-  const grouped = CHECK_CATEGORIES.reduce((acc, c) => { acc[c] = (trip.checklist || []).filter(i => i.category === c); return acc; }, {});
+  const tabs = [
+    { id: "Overview", icon: <FaCalendarAlt />, label: "Overview" },
+    { id: "Checklist", icon: <FaListUl />, label: "Checklist" },
+    { id: "Budget", icon: <FaDollarSign />, label: "Budget" },
+    { id: "Hotels", icon: <FaHotel />, label: "Hotels" },
+    { id: "Explore", icon: <FaShoppingBag />, label: "Explore" },
+    { id: "Weather", icon: <FaCloudSun />, label: "Weather" }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* banner */}
+      {/* Banner */}
       <div className="bg-white shadow">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex justify-between items-start gap-6">
-          <div>
-            <h1 className="text-2xl font-bold">{trip.title}</h1>
-            <div className="text-sm text-gray-600">{trip.destination}</div>
-            <div className="text-sm text-gray-500 mt-1">{trip.startDate && trip.endDate ? `${new Date(trip.startDate).toLocaleDateString()} → ${new Date(trip.endDate).toLocaleDateString()}` : "Dates not set"}</div>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex justify-between items-start gap-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{trip.title}</h1>
+              <div className="flex items-center gap-4 text-gray-600">
+                <span className="flex items-center gap-2">
+                  <FaMapMarkerAlt />
+                  {trip.destination}
+                </span>
+                {trip.startDate && trip.endDate && (
+                  <span className="flex items-center gap-2">
+                    <FaCalendarAlt />
+                    {new Date(trip.startDate).toLocaleDateString()} → {new Date(trip.endDate).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={openEdit} className="px-3 py-2 bg-indigo-600 text-white rounded">Edit</button>
-            <button onClick={deleteTrip} className="px-3 py-2 bg-red-500 text-white rounded">Delete</button>
+            <div className="flex items-center gap-3">
+              <button onClick={openEdit} className="btn btn-secondary">
+                <FaEdit /> Edit
+              </button>
+              <button onClick={deleteTrip} className="btn btn-danger">
+                <FaTrash /> Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="max-w-6xl mx-auto px-6 mt-6">
-        <div className="flex gap-3">
-          {["Overview","Checklist","Budget"].map(t => (
-            <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-2 rounded-full ${activeTab===t ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" : "bg-gray-100 text-gray-700"}`}>
-              {t}
+      <div className="max-w-7xl mx-auto px-6 mt-6">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium whitespace-nowrap transition ${
+                activeTab === tab.id
+                  ? "bg-primary-500 text-white shadow-md"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="mt-6 grid gap-6">
+        <div className="mt-6">
           {activeTab === "Overview" && (
-            <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-lg font-semibold mb-2">Overview</h2>
-              <p className="text-gray-700 mb-3">{trip.description || "No description"}</p>
+            <div className="space-y-6">
+              <div className="card">
+                <h2 className="text-xl font-semibold mb-4">Trip Overview</h2>
+                <p className="text-gray-700 mb-6">{trip.description || "No description"}</p>
 
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="p-4 bg-gray-50 rounded">
-                  <div className="text-sm text-gray-500">Duration</div>
-                  <div className="font-semibold">{trip.startDate && trip.endDate ? `${Math.max(0, Math.round((new Date(trip.endDate)-new Date(trip.startDate))/(1000*60*60*24))) } days` : "—"}</div>
+                <div className="grid md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500 mb-1">Duration</div>
+                    <div className="font-semibold text-gray-900">
+                      {trip.startDate && trip.endDate 
+                        ? `${Math.max(0, Math.round((new Date(trip.endDate)-new Date(trip.startDate))/(1000*60*60*24)))} days` 
+                        : "—"}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500 mb-1">Travelers</div>
+                    <div className="font-semibold text-gray-900">{trip.travelers || 1}</div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500 mb-1">Budget</div>
+                    <div className="font-semibold text-gray-900">${budget || 0}</div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-500 mb-1">Tasks Done</div>
+                    <div className="font-semibold text-gray-900">
+                      {(trip.checklist||[]).filter(i=>i.done).length}/{(trip.checklist||[]).length}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded">
-                  <div className="text-sm text-gray-500">Travelers</div>
-                  <div className="font-semibold">{trip.travelers || 1}</div>
+                {/* Budget Progress */}
+                <div className="mt-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <div className="font-medium text-gray-700">Budget Used</div>
+                    <div className="font-semibold text-gray-900">${totalExpenses} / ${budget || 0}</div>
+                  </div>
+                  <div className="progress-container">
+                    <div
+                      className={`progress-bar ${
+                        percentSafe > 80 ? "progress-danger" : 
+                        percentSafe > 50 ? "progress-warning" : 
+                        "progress-success"
+                      }`}
+                      style={{ width: `${percentSafe}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600">{percentSafe}% used</div>
                 </div>
-
-                <div className="p-4 bg-gray-50 rounded">
-                  <div className="text-sm text-gray-500">Budget</div>
-                  <div className="font-semibold">${budget || 0}</div>
-                </div>
-
-                <div className="p-4 bg-gray-50 rounded">
-                  <div className="text-sm text-gray-500">Tasks Done</div>
-                  <div className="font-semibold">{(trip.checklist||[]).filter(i=>i.done).length}/{(trip.checklist||[]).length}</div>
-                </div>
-              </div>
-
-              {/* budget progress */}
-              <div className="mt-6">
-                <div className="flex justify-between text-sm mb-1">
-                  <div>Budget used</div>
-                  <div className="font-medium">${totalExpenses} / ${budget || 0}</div>
-                </div>
-                <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-                  <div
-                    className={percentSafe > 80 ? "h-3 bg-red-500" : percentSafe > 50 ? "h-3 bg-yellow-500" : "h-3 bg-green-500"}
-                    style={{ width: `${percentSafe}%` }}
-                  />
-                </div>
-                <div className="mt-2 text-sm text-gray-600">{percentSafe}% used</div>
               </div>
             </div>
           )}
 
           {activeTab === "Checklist" && (
-            <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-lg font-semibold mb-4">Checklist</h2>
+            <div className="card">
+              <h2 className="text-xl font-semibold mb-6">Checklist</h2>
 
-              <div className="mb-4 flex gap-3">
-                <input value={newCheckText} onChange={(e)=>setNewCheckText(e.target.value)} className="flex-1 border px-3 py-2 rounded" placeholder="New checklist item"/>
-                <select value={newCheckCategory} onChange={(e)=>setNewCheckCategory(e.target.value)} className="border px-3 py-2 rounded">
+              <div className="mb-6 flex gap-3">
+                <input
+                  value={newCheckText}
+                  onChange={(e)=>setNewCheckText(e.target.value)}
+                  className="input flex-1"
+                  placeholder="New checklist item"
+                />
+                <select
+                  value={newCheckCategory}
+                  onChange={(e)=>setNewCheckCategory(e.target.value)}
+                  className="select"
+                >
                   {CHECK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <button onClick={addChecklist} className="px-4 py-2 bg-blue-600 text-white rounded">Add</button>
+                <button onClick={addChecklist} className="btn btn-primary">
+                  Add
+                </button>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
                 {CHECK_CATEGORIES.map(cat => {
                   const list = (trip.checklist||[]).filter(i=>i.category===cat);
                   return (
-                    <div key={cat} className="p-4 bg-gray-50 rounded">
-                      <div className="flex justify-between items-center mb-3">
+                    <div key={cat} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
                         <div>
-                          <h4 className="font-semibold">{cat}</h4>
-                          <div className="text-sm text-gray-500">{list.filter(i=>i.done).length}/{list.length} done</div>
+                          <h4 className="font-semibold text-gray-900">{cat}</h4>
+                          <div className="text-sm text-gray-500">
+                            {list.filter(i=>i.done).length}/{list.length} done
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        {list.length === 0 && <div className="text-gray-500">No items</div>}
+                        {list.length === 0 && <div className="text-gray-500 text-sm">No items</div>}
                         {list.map((it, idx) => {
-                          // find index in original array to operate
                           const globalIndex = (trip.checklist||[]).findIndex(x => x === it);
                           return (
-                            <div key={idx} className="flex items-center justify-between bg-white p-2 rounded">
-                              <label className="flex items-center gap-3">
-                                <input type="checkbox" checked={it.done} onChange={()=>toggleChecklist(globalIndex)} />
-                                <span className={it.done ? "line-through text-gray-500" : ""}>{it.text}</span>
+                            <div key={idx} className="flex items-center justify-between bg-white p-3 rounded">
+                              <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={it.done}
+                                  onChange={()=>toggleChecklist(globalIndex)}
+                                  className="w-4 h-4"
+                                />
+                                <span className={it.done ? "line-through text-gray-500" : "text-gray-900"}>
+                                  {it.text}
+                                </span>
                               </label>
-                              <button onClick={()=>deleteChecklist(globalIndex)} className="text-red-500">x</button>
+                              <button
+                                onClick={()=>deleteChecklist(globalIndex)}
+                                className="text-red-500 hover:text-red-700 ml-2"
+                              >
+                                ×
+                              </button>
                             </div>
                           );
                         })}
@@ -259,94 +341,168 @@ export default function TripDetails() {
           )}
 
           {activeTab === "Budget" && (
-            <div className="bg-white p-6 rounded shadow">
-              <h2 className="text-lg font-semibold mb-4">Budget & Expenses</h2>
+            <div className="card">
+              <h2 className="text-xl font-semibold mb-6">Budget & Expenses</h2>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <div className="text-sm text-gray-500 mb-2">Add Expense</div>
-                  <div className="grid gap-2">
-                    <select className="border px-3 py-2 rounded" value={expenseForm.category} onChange={(e)=>setExpenseForm({...expenseForm, category: e.target.value})}>
+                  <h4 className="font-medium mb-4">Add Expense</h4>
+                  <div className="space-y-3">
+                    <select
+                      className="select"
+                      value={expenseForm.category}
+                      onChange={(e)=>setExpenseForm({...expenseForm, category: e.target.value})}
+                    >
                       <option>Transportation</option>
                       <option>Food</option>
                       <option>Accommodation</option>
                       <option>Misc</option>
                     </select>
-                    <input className="border px-3 py-2 rounded" placeholder="Name" value={expenseForm.name} onChange={(e)=>setExpenseForm({...expenseForm, name: e.target.value})} />
-                    <input className="border px-3 py-2 rounded" placeholder="Amount" value={expenseForm.amount} onChange={(e)=>setExpenseForm({...expenseForm, amount: e.target.value})} type="number" />
-                    <input className="border px-3 py-2 rounded" placeholder="Date" value={expenseForm.date} onChange={(e)=>setExpenseForm({...expenseForm, date: e.target.value})} type="date" />
-                    <div className="flex gap-2">
-                      <button onClick={addExpense} className="px-4 py-2 bg-green-600 text-white rounded">Add Expense</button>
-                      <button onClick={()=>setExpenseForm({category:"Transportation",name:"",amount:"",date:""})} className="px-4 py-2 bg-gray-200 rounded">Clear</button>
-                    </div>
+                    <input
+                      className="input"
+                      placeholder="Expense name"
+                      value={expenseForm.name}
+                      onChange={(e)=>setExpenseForm({...expenseForm, name: e.target.value})}
+                    />
+                    <input
+                      className="input"
+                      placeholder="Amount"
+                      value={expenseForm.amount}
+                      onChange={(e)=>setExpenseForm({...expenseForm, amount: e.target.value})}
+                      type="number"
+                    />
+                    <input
+                      className="input"
+                      type="date"
+                      value={expenseForm.date}
+                      onChange={(e)=>setExpenseForm({...expenseForm, date: e.target.value})}
+                    />
+                    <button onClick={addExpense} className="btn btn-success w-full">
+                      Add Expense
+                    </button>
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-gray-500 mb-2">Summary</div>
-                  <div className="p-4 bg-gray-50 rounded">
-                    <div className="flex justify-between"><div>Total spent</div><div className="font-semibold">${totalExpenses}</div></div>
-                    <div className="flex justify-between mt-2"><div>Budget</div><div className="font-semibold">${budget || 0}</div></div>
-                    <div className="mt-4">
-                      <div className="text-sm text-gray-500">Breakdown</div>
-                      {(trip.expenses || []).length === 0 && <div className="text-gray-500 mt-2">No expenses</div>}
-                      {(trip.expenses || []).length > 0 && (
-                        <div className="mt-2 space-y-2">
-                          {["Transportation","Food","Accommodation","Misc"].map(cat => {
-                            const sum = (trip.expenses||[]).filter(e=>e.category===cat).reduce((s,e)=>s+Number(e.amount||0),0);
-                            return (
-                              <div key={cat} className="flex justify-between items-center">
-                                <div className="text-sm">{cat}</div>
-                                <div className="text-sm font-medium">${sum}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                  <h4 className="font-medium mb-4">Summary</h4>
+                  <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Spent</span>
+                      <span className="font-semibold text-gray-900">${totalExpenses}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Budget</span>
+                      <span className="font-semibold text-gray-900">${budget || 0}</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="text-sm text-gray-600 mb-2">Breakdown by Category</div>
+                      {["Transportation","Food","Accommodation","Misc"].map(cat => {
+                        const sum = (trip.expenses||[])
+                          .filter(e=>e.category===cat)
+                          .reduce((s,e)=>s+Number(e.amount||0),0);
+                        if (sum === 0) return null;
+                        return (
+                          <div key={cat} className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-700">{cat}</span>
+                            <span className="text-sm font-medium text-gray-900">${sum}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">All Expenses</h4>
+                <h4 className="font-medium mb-4">All Expenses</h4>
                 <div className="space-y-2">
-                  {(trip.expenses || []).length === 0 && <div className="text-gray-500">No expenses yet</div>}
+                  {(trip.expenses || []).length === 0 && (
+                    <div className="text-gray-500 text-center py-8">No expenses yet</div>
+                  )}
                   {(trip.expenses || []).map((ex, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                    <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                       <div>
-                        <div className="font-medium">{ex.name}</div>
-                        <div className="text-sm text-gray-500">{ex.category} • {ex.date || ""} {ex.description ? `• ${ex.description}` : ""}</div>
+                        <div className="font-medium text-gray-900">{ex.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {ex.category} • {ex.date || ""}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="font-semibold">${ex.amount}</div>
-                        <button onClick={()=>deleteExpense(idx)} className="text-red-500">x</button>
+                        <div className="font-semibold text-gray-900">${ex.amount}</div>
+                        <button
+                          onClick={()=>deleteExpense(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
             </div>
+          )}
+
+          {activeTab === "Hotels" && (
+            <HotelBooking
+              destination={trip.destination}
+              checkIn={trip.startDate}
+              checkOut={trip.endDate}
+            />
+          )}
+
+          {activeTab === "Explore" && (
+            <NearbyPlaces destination={trip.destination} />
+          )}
+
+          {activeTab === "Weather" && (
+            <EnhancedWeather destination={trip.destination} />
           )}
         </div>
       </div>
 
       {/* Edit Modal */}
       {editOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow w-full max-w-2xl p-6">
-            <h3 className="text-lg font-semibold mb-4">Edit Trip</h3>
-            <div className="grid gap-3">
-              <input className="border px-3 py-2 rounded" value={editForm.title} onChange={(e)=>setEditForm({...editForm, title: e.target.value})} />
-              <input className="border px-3 py-2 rounded" value={editForm.destination} onChange={(e)=>setEditForm({...editForm, destination: e.target.value})} />
-              <input className="border px-3 py-2 rounded" value={editForm.imageUrl} onChange={(e)=>setEditForm({...editForm, imageUrl: e.target.value})} placeholder="Image URL" />
-              <textarea className="border px-3 py-2 rounded" rows={4} value={editForm.description} onChange={(e)=>setEditForm({...editForm, description: e.target.value})} />
-            </div>
+        <div className="modal-overlay" onClick={()=>setEditOpen(false)}>
+          <div className="modal-content max-w-2xl" onClick={(e)=>e.stopPropagation()}>
+            <div className="p-6">
+              <h3 className="text-xl font-bold mb-4">Edit Trip</h3>
+              <div className="space-y-4">
+                <input
+                  className="input"
+                  value={editForm.title}
+                  onChange={(e)=>setEditForm({...editForm, title: e.target.value})}
+                  placeholder="Trip title"
+                />
+                <input
+                  className="input"
+                  value={editForm.destination}
+                  onChange={(e)=>setEditForm({...editForm, destination: e.target.value})}
+                  placeholder="Destination"
+                />
+                <input
+                  className="input"
+                  value={editForm.imageUrl}
+                  onChange={(e)=>setEditForm({...editForm, imageUrl: e.target.value})}
+                  placeholder="Image URL"
+                />
+                <textarea
+                  className="textarea"
+                  rows={4}
+                  value={editForm.description}
+                  onChange={(e)=>setEditForm({...editForm, description: e.target.value})}
+                  placeholder="Description"
+                />
+              </div>
 
-            <div className="flex justify-end gap-3 mt-4">
-              <button className="px-4 py-2 bg-gray-200 rounded" onClick={()=>setEditOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={saveEdit}>Save</button>
+              <div className="flex justify-end gap-3 mt-6">
+                <button className="btn btn-secondary" onClick={()=>setEditOpen(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={saveEdit}>
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>
