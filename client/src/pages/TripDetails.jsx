@@ -1,4 +1,4 @@
-// client/src/pages/TripDetails.jsx - UPDATED WITH NEW FEATURES
+// client/src/pages/TripDetails.jsx - FIXED IMPORT
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -11,13 +11,14 @@ import {
   FaDollarSign,
   FaCalendarAlt,
   FaEdit,
-  FaTrash
+  FaTrash,
+  FaMapMarkerAlt
 } from "react-icons/fa";
 
-// Import new components
+// Import components - FIXED: Changed EnhancedWeather to WeatherWidget
 import HotelBooking from "../components/HotelBooking";
 import NearbyPlaces from "../components/NearbyPlaces";
-import EnhancedWeather from "../components/EnhancedWeather";
+import WeatherWidget from "../components/WeatherWidget";
 
 const CHECK_CATEGORIES = ["Packing", "Documents", "Tasks"];
 
@@ -456,7 +457,7 @@ export default function TripDetails() {
           )}
 
           {activeTab === "Weather" && (
-            <EnhancedWeather destination={trip.destination} />
+            <WeatherWidget destination={trip.destination} />
           )}
         </div>
       </div>
