@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.jsx - WITH SEARCH & FILTER
+// client/src/pages/Dashboard.jsx - COMPLETE FIXED VERSION
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -20,24 +20,31 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
 
-  // NEW: Search and Filter States
+  // Search and Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
+    console.log("Dashboard mounted, user:", user);
     fetchTrips();
   }, []);
 
   const fetchTrips = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log("Fetching trips...");
       const res = await api.get("/trips");
-      setTrips(res.data);
+      console.log("Trips loaded:", res.data);
+      setTrips(res.data || []);
     } catch (err) {
-      console.error("fetchTrips", err);
+      console.error("fetchTrips error:", err);
+      console.error("Error response:", err.response?.data);
+      setError(err.response?.data?.message || err.message || "Failed to load trips");
     } finally {
       setLoading(false);
     }
@@ -48,7 +55,7 @@ export default function Dashboard() {
     setTrips((prev) => [newTrip, ...prev]);
   };
 
-  // NEW: Trip Status Helper
+  // Trip Status Helper
   const getTripStatus = (trip) => {
     if (!trip.startDate || !trip.endDate) return 'planning';
     const now = new Date();
@@ -60,15 +67,15 @@ export default function Dashboard() {
     return 'upcoming';
   };
 
-  // NEW: Filter and Sort Logic
+  // Filter and Sort Logic
   const filteredTrips = trips
     .filter(trip => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
-          trip.title.toLowerCase().includes(query) ||
-          trip.destination.toLowerCase().includes(query) ||
+          trip.title?.toLowerCase().includes(query) ||
+          trip.destination?.toLowerCase().includes(query) ||
           trip.description?.toLowerCase().includes(query)
         );
       }
@@ -90,12 +97,12 @@ export default function Dashboard() {
         return (b.budget || 0) - (a.budget || 0);
       }
       if (sortBy === 'title') {
-        return a.title.localeCompare(b.title);
+        return (a.title || '').localeCompare(b.title || '');
       }
       return 0;
     });
 
-  /* ---- Summary calculations ---- */
+  // Summary calculations
   const now = new Date();
   const totalTrips = trips.length;
 
@@ -118,6 +125,27 @@ export default function Dashboard() {
     );
     return sum + expensesTotal;
   }, 0);
+
+  // Error State
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="card max-w-md text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Trips</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button onClick={fetchTrips} className="btn btn-primary w-full">
+              Try Again
+            </button>
+            <button onClick={() => navigate("/login")} className="btn btn-secondary w-full">
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -187,7 +215,7 @@ export default function Dashboard() {
 
       {/* Trips Grid */}
       <main className="max-w-7xl mx-auto px-6 pb-12">
-        {/* NEW: Search and Filters */}
+        {/* Search and Filters */}
         {trips.length > 0 && (
           <div className="mb-6 space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -319,7 +347,11 @@ export default function Dashboard() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredTrips.map((trip) => (
-              <TripCard key={trip._id} trip={trip} onClick={() => navigate(`/trip/${trip._id}`)} />
+              <TripCard 
+                key={trip._id} 
+                trip={trip} 
+                onClick={() => navigate(`/trip/${trip._id}`)} 
+              />
             ))}
           </div>
         )}
