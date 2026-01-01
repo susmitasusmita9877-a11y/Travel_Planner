@@ -1,4 +1,4 @@
-// client/src/pages/Analytics.jsx
+// client/src/pages/Analytics.jsx - UPDATED WITH RUPEES
 import React, { useState, useEffect } from 'react';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import {
@@ -74,10 +74,8 @@ export default function Analytics() {
       return;
     }
 
-    // Total trips
     const totalTrips = tripsData.length;
 
-    // Total spent
     const totalSpent = tripsData.reduce((sum, trip) => {
       const tripExpenses = (trip.expenses || []).reduce(
         (s, e) => s + Number(e.amount || 0),
@@ -86,7 +84,6 @@ export default function Analytics() {
       return sum + tripExpenses;
     }, 0);
 
-    // Total days traveled
     const totalDays = tripsData.reduce((sum, trip) => {
       if (trip.startDate && trip.endDate) {
         const days = Math.max(
@@ -101,23 +98,19 @@ export default function Analytics() {
       return sum;
     }, 0);
 
-    // Unique countries/destinations
     const destinations = new Set(
       tripsData.map((t) => t.destination).filter(Boolean)
     );
     const countriesVisited = destinations.size;
 
-    // Average trip cost
     const avgTripCost = totalTrips > 0 ? totalSpent / totalTrips : 0;
 
-    // Most expensive trip
     const tripsWithCost = tripsData.map((trip) => ({
       ...trip,
       cost: (trip.expenses || []).reduce((s, e) => s + Number(e.amount || 0), 0)
     }));
     const mostExpensive = tripsWithCost.sort((a, b) => b.cost - a.cost)[0];
 
-    // Favorite destination (most visited)
     const destCount = {};
     tripsData.forEach((trip) => {
       if (trip.destination) {
@@ -128,11 +121,9 @@ export default function Analytics() {
       (a, b) => b[1] - a[1]
     )[0]?.[0];
 
-    // Budget utilization
     const totalBudget = tripsData.reduce((sum, trip) => sum + Number(trip.budget || 0), 0);
     const budgetUtilization = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-    // Spending by category
     const categorySpending = {};
     tripsData.forEach((trip) => {
       (trip.expenses || []).forEach((expense) => {
@@ -142,7 +133,6 @@ export default function Analytics() {
     });
     setSpendingByCategory(categorySpending);
 
-    // Spending over time
     const monthlySpending = {};
     tripsData.forEach((trip) => {
       (trip.expenses || []).forEach((expense) => {
@@ -157,7 +147,6 @@ export default function Analytics() {
     });
     setSpendingOverTime(monthlySpending);
 
-    // Trips by month
     const tripsByMonthData = {};
     tripsData.forEach((trip) => {
       if (trip.startDate) {
@@ -183,20 +172,19 @@ export default function Analytics() {
   };
 
   const exportReport = () => {
-    // Create CSV data
     const csvData = [
       ['Travel Analytics Report'],
       [''],
       ['Summary Statistics'],
       ['Total Trips', stats.totalTrips],
-      ['Total Spent', `$${stats.totalSpent.toFixed(2)}`],
+      ['Total Spent', `₹${stats.totalSpent.toFixed(2)}`],
       ['Total Days Traveled', stats.totalDays],
       ['Countries Visited', stats.countriesVisited],
-      ['Average Trip Cost', `$${stats.avgTripCost.toFixed(2)}`],
+      ['Average Trip Cost', `₹${stats.avgTripCost.toFixed(2)}`],
       ['Budget Utilization', `${stats.budgetUtilization.toFixed(1)}%`],
       [''],
       ['Spending by Category'],
-      ...Object.entries(spendingByCategory).map(([cat, amount]) => [cat, `$${amount.toFixed(2)}`])
+      ...Object.entries(spendingByCategory).map(([cat, amount]) => [cat, `₹${amount.toFixed(2)}`])
     ];
 
     const csv = csvData.map(row => row.join(',')).join('\n');
@@ -235,7 +223,6 @@ export default function Analytics() {
     );
   }
 
-  // Chart data
   const categoryChartData = {
     labels: Object.keys(spendingByCategory),
     datasets: [{
@@ -248,7 +235,7 @@ export default function Analytics() {
   const spendingTimelineData = {
     labels: Object.keys(spendingOverTime),
     datasets: [{
-      label: 'Spending',
+      label: 'Spending (₹)',
       data: Object.values(spendingOverTime),
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -292,7 +279,7 @@ export default function Analytics() {
           />
           <StatCard
             title="Total Spent"
-            value={`$${stats.totalSpent.toFixed(0)}`}
+            value={`₹${stats.totalSpent.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             icon={<FaDollarSign />}
             color="green"
           />
@@ -322,7 +309,7 @@ export default function Analytics() {
             {stats.mostExpensive && (
               <>
                 <div className="text-xl font-bold text-blue-900">{stats.mostExpensive.title}</div>
-                <div className="text-blue-700">${stats.mostExpensive.cost.toFixed(2)}</div>
+                <div className="text-blue-700">₹{stats.mostExpensive.cost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
               </>
             )}
           </div>
@@ -347,7 +334,7 @@ export default function Analytics() {
               <div className="text-sm text-purple-700 font-medium">Avg Trip Cost</div>
             </div>
             <div className="text-xl font-bold text-purple-900">
-              ${stats.avgTripCost.toFixed(2)}
+              ₹{stats.avgTripCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </div>
             <div className="text-sm text-purple-700">
               Budget utilization: {stats.budgetUtilization.toFixed(1)}%
@@ -357,7 +344,6 @@ export default function Analytics() {
 
         {/* Charts */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Spending by Category */}
           <div className="card">
             <h3 className="font-semibold text-lg mb-4">Spending by Category</h3>
             <div className="h-64">
@@ -369,6 +355,13 @@ export default function Analytics() {
                   plugins: {
                     legend: {
                       position: 'bottom'
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          return context.label + ': ₹' + context.parsed.toLocaleString('en-IN');
+                        }
+                      }
                     }
                   }
                 }}
@@ -376,7 +369,6 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* Trips by Month */}
           <div className="card">
             <h3 className="font-semibold text-lg mb-4">Trips by Month</h3>
             <div className="h-64">
@@ -416,13 +408,20 @@ export default function Analytics() {
                 plugins: {
                   legend: {
                     display: false
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return 'Spending: ₹' + context.parsed.y.toLocaleString('en-IN');
+                      }
+                    }
                   }
                 },
                 scales: {
                   y: {
                     beginAtZero: true,
                     ticks: {
-                      callback: (value) => `$${value}`
+                      callback: (value) => `₹${value.toLocaleString('en-IN')}`
                     }
                   }
                 }

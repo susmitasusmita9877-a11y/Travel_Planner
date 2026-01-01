@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.jsx - COMPLETE FIXED VERSION
+// client/src/pages/Dashboard.jsx - UPDATED WITH RUPEES
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -70,7 +70,6 @@ export default function Dashboard() {
   // Filter and Sort Logic
   const filteredTrips = trips
     .filter(trip => {
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -82,14 +81,12 @@ export default function Dashboard() {
       return true;
     })
     .filter(trip => {
-      // Status filter
       if (statusFilter !== 'all') {
         return getTripStatus(trip) === statusFilter;
       }
       return true;
     })
     .sort((a, b) => {
-      // Sorting
       if (sortBy === 'date') {
         return new Date(b.startDate || 0) - new Date(a.startDate || 0);
       }
@@ -204,7 +201,7 @@ export default function Dashboard() {
           />
           <SummaryCard
             title="Total Spent"
-            value={`$${totalBudgetUsed.toFixed(0)}`}
+            value={`₹${totalBudgetUsed.toLocaleString('en-IN')}`}
             icon={<FaDollarSign size={24} />}
             gradient="from-purple-500 to-purple-700"
             bgColor="bg-purple-50"
@@ -459,7 +456,7 @@ function TripCard({ trip, onClick }) {
           </div>
           {trip.budget > 0 && (
             <div className="text-xs font-medium text-gray-700">
-              ${trip.budget}
+              ₹{trip.budget.toLocaleString('en-IN')}
             </div>
           )}
         </div>
@@ -540,7 +537,7 @@ function CreateTripModal({ onClose, onSuccess }) {
                 onChange={handleChange}
                 required
                 className="input"
-                placeholder="e.g. Summer in Bali"
+                placeholder="e.g. Summer in Goa"
               />
             </div>
             
@@ -552,7 +549,7 @@ function CreateTripModal({ onClose, onSuccess }) {
                 onChange={handleChange}
                 required
                 className="input"
-                placeholder="e.g. Bali, Indonesia"
+                placeholder="e.g. Goa, India"
               />
             </div>
 
@@ -579,7 +576,7 @@ function CreateTripModal({ onClose, onSuccess }) {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Budget (USD)</label>
+              <label className="input-label">Budget (₹)</label>
               <input
                 name="budget"
                 value={form.budget}
@@ -587,7 +584,7 @@ function CreateTripModal({ onClose, onSuccess }) {
                 type="number"
                 min="0"
                 className="input"
-                placeholder="e.g. 2000"
+                placeholder="e.g. 50000"
               />
             </div>
             

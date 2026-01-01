@@ -1,4 +1,4 @@
-// client/src/components/NearbyPlaces.jsx
+// client/src/components/NearbyPlaces.jsx - FIXED VERSION
 import React, { useState, useEffect } from 'react';
 import { 
   FaShoppingBag, 
@@ -21,11 +21,54 @@ const PLACE_CATEGORIES = [
   { id: 'entertainment', label: 'Entertainment', icon: <FaMusic /> }
 ];
 
+const CATEGORY_IMAGES = {
+  shopping: [
+    'https://images.unsplash.com/photo-1555529902-5261145633bf?w=800&q=80',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80',
+    'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80',
+    'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=800&q=80',
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
+    'https://images.unsplash.com/photo-1542992015-4a0b729b1385?w=800&q=80',
+    'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=800&q=80',
+    'https://images.unsplash.com/photo-1591085686350-798c0f9faa7f?w=800&q=80'
+  ],
+  restaurants: [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80',
+    'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800&q=80',
+    'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80',
+    'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
+    'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
+    'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
+    'https://images.unsplash.com/photo-1529417305485-480f579e1054?w=800&q=80'
+  ],
+  attractions: [
+    'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=800&q=80',
+    'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80',
+    'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80',
+    'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=800&q=80',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&q=80',
+    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80',
+    'https://images.unsplash.com/photo-1504214208698-ea1916a2195a?w=800&q=80'
+  ],
+  entertainment: [
+    'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800&q=80',
+    'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80',
+    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
+    'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&q=80',
+    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
+    'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&q=80',
+    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80'
+  ]
+};
+
 export default function NearbyPlaces({ destination, coordinates }) {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('shopping');
-  const [radius, setRadius] = useState(5000); // 5km default
+  const [radius, setRadius] = useState(5000);
   const [selectedPlace, setSelectedPlace] = useState(null);
 
   useEffect(() => {
@@ -37,11 +80,6 @@ export default function NearbyPlaces({ destination, coordinates }) {
   const fetchNearbyPlaces = async () => {
     setLoading(true);
     try {
-      // In production, use Google Places API
-      // const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-      // const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${selectedCategory}&key=${API_KEY}`;
-      
-      // For now, using mock data
       const mockPlaces = generateMockPlaces(selectedCategory, destination);
       setPlaces(mockPlaces);
     } catch (err) {
@@ -72,6 +110,7 @@ export default function NearbyPlaces({ destination, coordinates }) {
     };
 
     const names = placesByCategory[category] || [];
+    const images = CATEGORY_IMAGES[category] || [];
     
     return names.map((name, idx) => ({
       id: idx + 1,
@@ -82,10 +121,10 @@ export default function NearbyPlaces({ destination, coordinates }) {
       reviews: Math.floor(Math.random() * 300) + 50,
       distance: (Math.random() * (radius / 1000)).toFixed(1),
       address: `${Math.floor(Math.random() * 500)} Main Street, ${location}`,
-      phone: `+1 ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+      phone: `+91 ${Math.floor(Math.random() * 90000) + 10000}-${Math.floor(Math.random() * 90000) + 10000}`,
       hours: idx % 2 === 0 ? 'Open • Closes 10 PM' : 'Open • Closes 9 PM',
       priceLevel: Math.floor(Math.random() * 3) + 1,
-      image: `https://source.unsplash.com/800x600/?${category},${name.replace(/\s/g, '')}`,
+      image: images[idx % images.length],
       description: `Popular ${category} destination in ${location}. Highly rated by visitors.`,
       features: getFeaturesByCategory(category)
     }));
@@ -102,13 +141,12 @@ export default function NearbyPlaces({ destination, coordinates }) {
   };
 
   const getDirections = (place) => {
-    // Open Google Maps with directions
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address)}`;
     window.open(url, '_blank');
   };
 
   const getPriceSymbol = (level) => {
-    return '$'.repeat(level);
+    return '₹'.repeat(level);
   };
 
   const getCategoryIcon = (category) => {
@@ -191,9 +229,6 @@ export default function NearbyPlaces({ destination, coordinates }) {
                     src={place.image}
                     alt={place.name}
                     className="w-full h-40 object-cover"
-                    onError={(e) => {
-                      e.target.src = `https://source.unsplash.com/800x600/?${place.category}`;
-                    }}
                   />
                 </div>
 
